@@ -8,7 +8,7 @@ formData.addEventListener('submit', e => {
      Usuario = JSON?.stringify(data)
      Usuario = JSON.parse(Usuario)
      console.log(Usuario);
-     fetch('http://localhost:3000', {
+     fetch('http://localhost:3000/SubirArchivo', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
