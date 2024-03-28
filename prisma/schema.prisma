@@ -10,72 +10,92 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TypePostEnum {
+  normal
+  evento
+}
+
+  enum TypeRoleEnum {
+  admin
+  user
+}
+
 model User {
-  id                   Int       @id @default(autoincrement())
-  UserName             String
-  Email                String    @unique
-  contrasena           String
-  UserRole             String        @unique   @default("NormalProfile")   
-  galleries            Gallery[] 
-  donations            Donations[] 
-  comment              Comments[]
-  facebookProfile FacebookUser?
-  googleProfile   GoogleUser?
+  id                  Int          @id @default(autoincrement())
+  userName            String
+  email               String       @unique
+  password            String?
+  userRole            TypeRoleEnum @default(user)
+  facebookId          String?      @unique
+  googleId            String?      @unique
+  publicIdImgUrl      String?
+  profilePictureURL   String?
+  externalAccessToken String?
+  resetToken          String?
+  resetTokenExpiry    DateTime?
+  galleries           Media[]
+  donations           Donations[]
+  comment             Comments[]
+  post                Post[]
+  answer              Answer[]
 }
 
-model FacebookUser{
-id          Int      @id @default(autoincrement())
-  userId      Int      @unique
-  externalAuthProviderid String
-  ExternalAuthProviderType String
-  ProfilePictureURL      String
-  ExternalAccessToken    String?
- user        User     @relation(fields: [userId], references: [id])
+model Post {
+  typePost    TypePostEnum @default(normal)
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String
+  createAt    DateTime     @default(now())
+  media       Media[]
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+  comments    Comments[]
+    timestamp   DateTime @default(now())
 }
 
-model GoogleUser{
-  id          Int      @id @default(autoincrement())
-  userId      Int      @unique
-  externalAuthProviderid String
-  ExternalAuthProviderType String
-  ProfilePictureURL      String
-  ExternalAccessToken    String?
- user        User     @relation(fields: [userId], references: [id])
-}
-
-
-
-
-model Gallery {
-  id          Int       @id @default(autoincrement())
-  imgName     String
-  ImageUrl    String
-  Description String
-  User_role   String
-  User_id     Int
-  User        User      @relation(fields: [User_id], references: [id])
+model Media {
+  id          Int     @id @default(autoincrement())
+  imgName     String?
+  imageUrl    String
+  Description String?
+  publicId    String?
+  postId      Int
+  post        Post    @relation(fields: [postId], references: [id])
+  userId      Int
+  user        User    @relation(fields: [userId], references: [id])
 }
 
 model Donations {
-  id                Int       @id @default(autoincrement())
-  amount            Decimal   @db.Decimal(10,2)
-  concurrency       String
-  paypament_status  String
-  paypament_method  String
-  stripe_charge_id  String
-  User_id           Int
-  operationdate     DateTime
-  timeofoperation   DateTime
-  User              User      @relation(fields: [User_id], references: [id])
+  id              Int      @id @default(autoincrement())
+  amount          Decimal  @db.Decimal(10, 2)
+  concurrency     String
+  paypamentStatus String
+  paypamentMethod String
+  stripeChargeId  String
+  userId          Int
+  operationdate   DateTime
+  timeofoperation DateTime
+  user            User     @relation(fields: [userId], references: [id])
 }
 
 model Comments {
-  comments_id  Int       @id @default(autoincrement())
-  user         User?     @relation(fields: [user_id], references: [id])
-  user_id      Int?
-  content_id   Int
-  comment      String
-  timestamp    DateTime
+  id       Int      @id @default(autoincrement())
+  user     User?    @relation(fields: [userId], references: [id])
+  userId   Int?
+  comment  String
+  createAt DateTime @default(now())
+  postId   Int
+  post     Post     @relation(fields: [postId], references: [id])
+  answer   Answer[]
 
-  @@index([user_id], name: "user_id")
+  @@index([userId], name: "userId")
+}
+
+model Answer {
+  id        Int      @id @default(autoincrement())
+  answer    String
+  commentId Int
+  comments  Comments @relation(fields: [commentId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    Int?
 }
